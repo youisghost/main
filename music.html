@@ -1,0 +1,228 @@
+<!doctype html>
+<html class="imageBg">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>自然赞歌</title>
+		<style>
+		* {
+			transition: 0.2s ease-in-out;
+			-webkit-transition: 0.2s ease-in-out;
+			-moz-transition: 0.2s ease-in-out;
+		}
+		::selection {
+			background: green;
+			color: #fff;
+			text-shadow: none;
+		}
+		html, body {
+			margin: 0;
+			padding: 0;
+			color: #999;
+			font-family: 'Microsoft Yahei','微软雅黑',arial;
+		}
+		html {
+			background-color: #1b2426;
+		}
+		header h1 {
+			display: inline-block;
+		}
+		header h1 a {
+			color: #bbb;
+		}
+		a {
+			color: #999;
+			text-decoration: none;
+		}
+		a:hover {
+			color: #eee;
+			text-decoration: underline;
+		}
+		.imageBg {
+			background: url(../content/images/bg.jpg) no-repeat center center fixed;
+			-webkit-background-size: cover;
+			-moz-background-size: cover;
+			-o-background-size: cover;
+			background-size: cover;
+		}
+		.colorBg {
+			background-image: none;
+		}
+		.wrapper {
+			text-align: center;
+			width: 99%;
+			margin: 0 auto;
+		}
+		#player {
+			position: fixed;
+			bottom: 5px;
+			opacity: 0.2;
+			left: 0;
+			right: 0;
+			z-index: 99;
+		}
+		#player:hover {
+			opacity: 1;
+		}
+		#lyricWrapper {
+			height: 315px;
+			overflow: hidden;
+			position: relative;
+			margin-top: 20px;
+			color: #fff;
+		}
+
+		/* http://stackoverflow.com/questions/13426875/text-border-using-css-border-around-text */
+		#lyricContainer {
+			position: relative;
+			top: 130px;
+			text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000; 
+		}
+
+		/*the highlight color of the current lyric line*/
+		.current-line {
+			color: #FAFA17;
+		}
+		/*hide the default audio controls when overflow, the 526px is the width of the controls in IE*/
+		@media screen and (max-width: 526px) {
+			#player {
+				display: none;
+		   }
+		}
+		</style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div id="player">
+                <audio controls id="audio" src="music.mp3">
+            </div>
+            <div id="lyricWrapper">
+                <div id="lyricContainer">
+                </div>
+            </div>
+        </div>
+        <script>
+			var audio = document.getElementById('audio');
+			var lyricContainer = document.getElementById('lyricContainer');
+			var lyric = null;
+			
+			function getLyric() {
+				var that = this,
+					request = new XMLHttpRequest();
+				request.open('GET', "music.txt", true);
+				request.responseType = 'text';
+				request.onload = function() {
+					that.lyric = that.parseLyric(request.response);
+					that.appendLyric(that.lyric);
+				};
+				request.onerror = request.onabort = function(e) {
+					that.lyricContainer.textContent = '加载歌词失败';
+				}
+				this.lyricContainer.textContent = '歌词加载中...';
+				request.send();
+			}
+			
+			function parseLyric(text) {
+				//get each line from the text
+				var lines = text.split('\n'),
+					//this regex mathes the time [00.12.78]
+					pattern = /\[\d{2}:\d{2}.\d{2}\]/g,
+					result = [];
+
+				// Get offset from lyrics
+				var offset = this.getOffset(text);
+
+				//exclude the description parts or empty parts of the lyric
+				while (!pattern.test(lines[0])) {
+					lines = lines.slice(1);
+				};
+				//remove the last empty item
+				lines[lines.length - 1].length === 0 && lines.pop();
+				//display all content on the page
+				lines.forEach(function(v, i, a) {
+					var time = v.match(pattern),
+						value = v.replace(pattern, '');
+					time.forEach(function(v1, i1, a1) {
+						//convert the [min:sec] to secs format then store into result
+						var t = v1.slice(1, -1).split(':');
+						result.push([parseInt(t[0], 10) * 60 + parseFloat(t[1]) + parseInt(offset) / 1000, value]);
+					});
+				});
+				//sort the result by time
+				result.sort(function(a, b) {
+					return a[0] - b[0];
+				});
+				console.log(result);
+				return result;
+			}
+			
+			function appendLyric(lyric) {
+				var that = this,
+					lyricContainer = this.lyricContainer,
+					fragment = document.createDocumentFragment();
+				//clear the lyric container first
+				this.lyricContainer.innerHTML = '';
+				lyric.forEach(function(v, i, a) {
+					var line = document.createElement('p');
+					line.id = 'line-' + i;
+					line.textContent = v[1];
+					fragment.appendChild(line);
+				});
+				lyricContainer.appendChild(fragment);
+			}
+			
+			function getOffset(text) {
+				//Returns offset in miliseconds.
+				var offset = 0;
+				try {
+					// Pattern matches [offset:1000]
+					var offsetPattern = /\[offset:\-?\+?\d+\]/g,
+						// Get only the first match.
+						offset_line = text.match(offsetPattern)[0],
+						// Get the second part of the offset.
+						offset_str = offset_line.split(':')[1];
+					// Convert it to Int.
+					offset = parseInt(offset_str);
+				} catch (err) {
+					//alert("offset error: "+err.message);
+					offset = 0;
+				}
+				return offset;
+			}
+			
+			function play() {
+				var that = this;
+				this.audio.src = './music/music.mp3';
+				//reset the position of the lyric container
+				this.lyricContainer.style.top = '130px';
+				//empty the lyric
+				this.lyric = null;
+				this.lyricContainer.textContent = '加载中...';
+				this.audio.addEventListener('canplay', function() {
+					that.getLyric();
+					this.play();
+				});
+				//sync the lyric
+				this.audio.addEventListener("timeupdate", function(e) {
+					if (!that.lyric) return;
+					for (var i = 0, l = that.lyric.length; i < l; i++) {
+						if (this.currentTime > that.lyric[i][0] - 0.50 /*preload the lyric by 0.50s*/ ) {
+							//single line display mode
+							// that.lyricContainer.textContent = that.lyric[i][1];
+							//scroll mode
+							var line = document.getElementById('line-' + i),
+								prevLine = document.getElementById('line-' + (i > 0 ? i - 1 : i));
+							prevLine.className = '';
+							//randomize the color of the current line of the lyric
+							line.className = 'current-line';
+							that.lyricContainer.style.top = 130 - line.offsetTop + 'px';
+						};
+					};
+				});
+			}
+			
+			play();
+		</script>
+    </body>
+</html>
