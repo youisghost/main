@@ -1,11 +1,11 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>超级玛丽</title>
+<meta charset="utf-8" name="viewport" content="user-scalable=no">
+<title>未知领域</title>
 <style>
 body {
-  background: #222;
+  background: black;
 }
 
 .background {
@@ -18,7 +18,7 @@ body {
 }
 
 .lava, .actor {
-  background: #e55;
+  background: red;
 }
 
 .wall {
@@ -32,17 +32,17 @@ body {
 }
 
 .coin {
-  background: #e2e838;
+  background: yellow;
   border-radius: 50%;
 }
 
 .player {
-  background: #335699;
+  background: blue;
   box-shadow: none;
 }
 
 .lost .player {
-  background: #a04040;
+  background: red;
 }
 
 .won .player {
@@ -53,26 +53,24 @@ body {
   position: relative;
   overflow: hidden;
 }
-.movebtn{
-	position:fixed;
-	left:50px;
-	bottom:50px;
-}
-.jumpbtn{
-	position:fixed;
-	right:50px;
-	bottom:50px;
+
+.allbtn {
+	height: 200px;
+	width: 200px;
+	background: #13eef3;
+	border: 0;
+	border-radius: 50%;
 }
 </style>
 </head>
 <body>
-<div>
-    <div class="movebtn">
-		<button id="left"><font size="5">←</font></button>
-		<button id="right"><font size="5">→</font></button>
+<div id="btn" style="display:none;">
+    <div style="position:fixed;left:100px;bottom:100px;">
+		<button id="left" class="allbtn"></button>
+		<button id="right" class="allbtn"></button>
     </div>
-    <div class="jumpbtn">
-		<button id="up"><font size="5">↑</font></button>
+    <div style="position:fixed;right:100px;bottom:100px;">
+		<button id="up" class="allbtn"></button>
     </div>
 </div>
 <script>
@@ -231,7 +229,6 @@ Vector.prototype.times = function(scale) {
 	return new Vector(this.x * scale, this.y * scale);
 };
 
-// Note: uppercase words are used that means constructor are values
 var actorchars = {
 	"@": Player,
 	"o": Coin,
@@ -259,12 +256,11 @@ function Lava(pos, ch) {
 		this.repeatPos = pos;
 	}
 }
-Lava.prototype.type = "Lava";
+Lava.prototype.type = "lava";
 
 function Coin(pos) {
 	this.basePos = this.pos = pos;
 	this.size = new Vector(.6, .6);
-	// take a look back
 	this.wobble = Math.random() * Math.PI * 2;
 }
 Coin.prototype.type = "coin";
@@ -361,13 +357,11 @@ DOMDisplay.prototype.drawFrame = function() {
 	this.scrollPlayerIntoView();
 };
 
-// clear it later
 DOMDisplay.prototype.scrollPlayerIntoView = function() {
 	var width = this.wrap.clientWidth;
 	var height = this.wrap.clientHeight;
 	var margin = width / 3;
 
-	// The viewport
 	var left = this.wrap.scrollLeft,
 		right = left + width;
 	var top = this.wrap.scrollTop,
@@ -498,7 +492,6 @@ Player.prototype.act = function(step, level, keys) {
 	if (otherActor)
 		level.playerTouched(otherActor.type, otherActor);
 
-	// Losing animation
 	if (level.status == "lost") {
 		this.pos.y += step;
 		this.size.y -= step;
@@ -522,6 +515,17 @@ Level.prototype.playerTouched = function(type, actor) {
 	}
 };
 
+{
+	var userAgentInfo = navigator.userAgent;
+	var Agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"];
+	for (var v = 0; v < Agents.length; v++) {
+		if (userAgentInfo.indexOf(Agents[v]) > 0) {
+			document.getElementById("btn").style.display = "block";
+			break;
+		}
+	}
+}
+
 var arrowCodes = {
 	37: "left",
 	38: "up",
@@ -541,20 +545,22 @@ function trackKeys(codes) {
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
 	
+	addEventListener("touchmove", function(event) {event.preventDefault();}, false);
+	
 	var left = document.getElementById("left");
-	left.addEventListener("mousedown", function(){pressed["left"] = true;});
-	left.addEventListener("mouseup", function(){pressed["left"] = false;});
-	left.addEventListener("mouseout", function(){pressed["left"] = false;});
+	left.addEventListener("touchstart", function(){pressed["left"] = true;});
+	left.addEventListener("touchend", function(){pressed["left"] = false;});
+	left.addEventListener("touchcancel", function(){pressed["left"] = false;});
 	
 	var right = document.getElementById("right");
-	right.addEventListener("mousedown", function(){pressed["right"] = true;});
-	right.addEventListener("mouseup", function(){pressed["right"] = false;});
-	right.addEventListener("mouseout", function(){pressed["right"] = false;});
+	right.addEventListener("touchstart", function(event){pressed["right"] = true;});
+	right.addEventListener("touchend", function(event){pressed["right"] = false;});
+	right.addEventListener("touchcancel", function(event){pressed["right"] = false;});
 	
 	var up = document.getElementById("up");
-	up.addEventListener("mousedown", function(){pressed["up"] = true;});
-	up.addEventListener("mouseup", function(){pressed["up"] = false;});
-	up.addEventListener("mouseout", function(){pressed["up"] = false;});
+	up.addEventListener("touchstart", function(){pressed["up"] = true;});
+	up.addEventListener("touchend", function(){pressed["up"] = false;});
+	up.addEventListener("touchcancel", function(){pressed["up"] = false;});
 	
 	return pressed;
 }
