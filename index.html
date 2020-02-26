@@ -56,6 +56,9 @@ body {
 </style>
 </head>
 <body>
+<button id="left">Left</button>
+<button id="right">Right</button>
+<button id="up">Up</button>
 <script>
 var LEVELS = [
 	["                                                                                ",
@@ -521,6 +524,22 @@ function trackKeys(codes) {
 	}
 	addEventListener("keydown", handler);
 	addEventListener("keyup", handler);
+	
+	var left = document.getElementById("left");
+	left.addEventListener("mousedown", function(){pressed["left"] = true;});
+	left.addEventListener("mouseup", function(){pressed["left"] = false;});
+	left.addEventListener("mouseout", function(){pressed["left"] = false;});
+	
+	var right = document.getElementById("right");
+	right.addEventListener("mousedown", function(){pressed["right"] = true;});
+	right.addEventListener("mouseup", function(){pressed["right"] = false;});
+	right.addEventListener("mouseout", function(){pressed["right"] = false;});
+	
+	var up = document.getElementById("up");
+	up.addEventListener("mousedown", function(){pressed["up"] = true;});
+	up.addEventListener("mouseup", function(){pressed["up"] = false;});
+	up.addEventListener("mouseout", function(){pressed["up"] = false;});
+	
 	return pressed;
 }
 
