@@ -53,12 +53,28 @@ body {
   position: relative;
   overflow: hidden;
 }
+.movebtn{
+	position:fixed;
+	left:50px;
+	bottom:50px;
+}
+.jumpbtn{
+	position:fixed;
+	right:50px;
+	bottom:50px;
+}
 </style>
 </head>
 <body>
-<button id="left" value="left"></button>
-<button id="right" value="right"></button>
-<button id="up" value="up"></button>
+<div>
+    <div class="movebtn">
+		<button id="left"><font size="5">←</font></button>
+		<button id="right"><font size="5">→</font></button>
+    </div>
+    <div class="jumpbtn">
+		<button id="up"><font size="5">↑</font></button>
+    </div>
+</div>
 <script>
 var LEVELS = [
 	["                                                                                ",
